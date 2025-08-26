@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Catch The Food Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: Arial, sans-serif;
+      flex-direction: column;
+    }
+    #game {
+      position: relative;
+      width: 450px;
+      height: 600px;
+      border: 2px solid #fff;
+      overflow: hidden;
+      background: #222;
+    }
+    #player {
+      position: absolute;
+      bottom: -1px;
+      left: 180px;
+      font-size: 50px; /* keranjang */
+    }
+    .food {
+      position: absolute;
+      top: 0;
+      font-size: 28px;
+    }
+    /* glow efek */
+    .special {
+      text-shadow: 0 0 10px #00e1ff, 0 0 20px #00e1ff;
+    }
+    .epic {
+      text-shadow: 0 0 10px #a200ff, 0 0 20px #a200ff;
+    }
+    #score {
+      font-size: 18px;
+      margin: 5px;
+    }
+    #level {
+      font-size: 18px;
+      margin: 5px;
+    }
+    #controls {
+      margin-top: 10px;
+    }
+    .btn {
+      background: #444;
+      color: white;
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:active {
+      background: #666;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <div id="level">Level: 1</div>
+
+  <div id="game">
+    <div id="player">🛒</div>
+  </div>
+
+  <div id="controls">
+    <button class="btn" id="left">⬅️</button>
+    <button class="btn" id="right">➡️</button>
+  </div>
+
+  <script>
+    const game = document.getElementById("game");
+    const player = document.getElementById("player");
+    const scoreText = document.getElementById("score");
+    const levelText = document.getElementById("level");
+    let score = 0;
+    let level = 1;
+    let playerX = 180;
+
+    const normalFoods = ["🍔", "🍕", "🍟", "🍎", "🍩", "🍉", "🥐", "🥕", "🍗", "🍫"];
+    const specialFood = "🍓"; // +7
+    const epicFood = "🍰";    // +15
+
+    function movePlayer(dir) {
+      if (dir === "left" && playerX > 0) {
+        playerX -= 25;
+      } else if (dir === "right" && playerX < 350) {
+        playerX += 25;
+      }
+      player.style.left = playerX + "px";
+    }
+
+    document.getElementById("left").addEventListener("click", () => movePlayer("left"));
+    document.getElementById("right").addEventListener("click", () => movePlayer("right"));
+
+    function createFood() {
+      const food = document.createElement("div");
+      food.classList.add("food");
+
+      // tentukan jenis makanan
+      let rand = Math.random();
+      if (rand < 0.05) { // 1% epic
+        food.textContent = epicFood;
+        food.dataset.value = 10;
+        food.classList.add("epic");
+      } else if (rand < 0.09) { // 4% special
+        food.textContent = specialFood;
+        food.dataset.value = 5;
+        food.classList.add("special");
+      } else { // normal
+        food.textContent = normalFoods[Math.floor(Math.random() * normalFoods.length)];
+        food.dataset.value = 1;
+      }
+
+      food.style.left = Math.random() * 380 + "px";
+      food.style.top = "0px";
+      game.appendChild(food);
+
+      let fallInterval = setInterval(() => {
+        let foodY = parseInt(food.style.top);
+        let speed = 5 + (level - 1); // makin tinggi level makin cepat
+        food.style.top = foodY + speed + "px";
+
+        if (foodY > 560) {
+          let foodX = parseInt(food.style.left);
+          if (foodX > playerX - 20 && foodX < playerX + 40) {
+            score += parseInt(food.dataset.value);
+            scoreText.innerText = "Score: " + score;
+
+            // cek level up
+            let newLevel = Math.floor(score / 50) + 1;
+            if (newLevel > level) {
+              level = newLevel;
+              levelText.innerText = "Level: " + level;
+            }
+
+            food.remove();
+            clearInterval(fallInterval);
+          } else if (foodY > 590) {
+            alert("Game Over! Skor kamu: " + score);
+            window.location.reload();
+          }
+        }
+      }, 30);
+    }
+
+    setInterval(createFood, 1500);
+  </script>
+</body>
+</html>
